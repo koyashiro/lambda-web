@@ -273,31 +273,22 @@ where
 
     // Compress, base64 encode the response body
     let body_bytes = hyper::body::to_bytes(res_body).await?;
-    let body_base64 = if compress {
-        if multi_value {
-            headers.insert("content-encoding".to_string(), json!(["br"]));
-        } else {
-            headers.insert("content-encoding".to_string(), json!("br"));
-        }
-        crate::brotli::compress_response_body(&body_bytes)
-    } else {
-        base64::encode(body_bytes)
-    };
+    let body_string = String::from_utf8(body_bytes.to_vec()).unwrap();
 
     if multi_value {
         Ok(json!({
-            "isBase64Encoded": true,
+            "isBase64Encoded": false,
             "statusCode": status_code,
             "multiValueHeaders": headers,
-            "body": body_base64
+            "body": body_string,
         }))
     } else {
         Ok(json!({
-            "isBase64Encoded": true,
+            "isBase64Encoded": false,
             "statusCode": status_code,
             "cookies": cookies,
             "headers": headers,
-            "body": body_base64
+            "body": body_string,
         }))
     }
 }
